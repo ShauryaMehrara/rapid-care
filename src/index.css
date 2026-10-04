@@ -12,6 +12,7 @@
   --coral: #e8472b;
   --display: 'Bricolage Grotesque', 'Figtree', system-ui, sans-serif;
   --ease: cubic-bezier(.2, .8, .2, 1);
+  --wrap: 1240px;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -62,7 +63,7 @@ a { color: var(--teal); }
 }
 
 /* ---------- login / register ---------- */
-.auth-shell { min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; }
+.auth-shell { position: relative; z-index: 1; min-height: 100vh; display: grid; grid-template-columns: 1.05fr 1fr; }
 .auth-brand {
   background: var(--deep); color: #fff; padding: 44px 52px;
   display: flex; flex-direction: column; justify-content: space-between; gap: 30px;
@@ -120,17 +121,18 @@ a { color: var(--teal); }
   border-bottom: 1px solid var(--line);
 }
 .topbar-inner {
-  max-width: 1120px; margin: 0 auto; padding: 12px 20px;
+  max-width: var(--wrap); margin: 0 auto; padding: 12px 20px;
   display: flex; align-items: center; gap: 20px;
 }
 .brand {
   display: flex; align-items: center; gap: 10px; text-decoration: none; white-space: nowrap;
   font-family: var(--display); font-weight: 700; font-size: 21px; color: var(--ink);
 }
-.tabs { display: flex; gap: 4px; overflow-x: auto; flex: 1; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; flex: 1; min-width: 0; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
 .tab {
-  position: relative; padding: 8px 14px; border-radius: 999px; text-decoration: none;
-  color: var(--muted); font-weight: 500; white-space: nowrap; font-size: 15px;
+  position: relative; padding: 8px 11px; border-radius: 999px; text-decoration: none;
+  color: var(--muted); font-weight: 500; white-space: nowrap; font-size: 14.5px;
   transition: background .2s, color .2s;
 }
 .tab:hover { background: var(--mint); color: var(--ink); }
@@ -147,14 +149,14 @@ a { color: var(--teal); }
   animation: bump .35s var(--ease);
 }
 .hello { color: var(--muted); font-size: 14px; }
-@media (max-width: 900px) {
+@media (max-width: 1320px) { .hello { display: none; } }
+@media (max-width: 1180px) {
   .topbar-inner { flex-wrap: wrap; gap: 10px; }
   .tabs { order: 3; flex-basis: 100%; }
-  .hello { display: none; }
 }
 
 /* ---------- page ---------- */
-.page { max-width: 1120px; margin: 0 auto; padding: 28px 20px 120px; }
+.page { position: relative; z-index: 1; max-width: var(--wrap); margin: 0 auto; padding: 28px 20px 120px; }
 .page h1 { font-size: 32px; margin: 0 0 6px; color: var(--ink); }
 .page h2 { margin: 0 0 14px; font-size: 19px; }
 .lead { color: var(--muted); margin: 0 0 22px; line-height: 1.5; }
@@ -241,7 +243,7 @@ a { color: var(--teal); }
   background: var(--deep); color: #fff; animation: slideUp .4s var(--ease) both;
 }
 .cartbar-inner {
-  max-width: 1120px; margin: 0 auto; padding: 14px 20px;
+  max-width: var(--wrap); margin: 0 auto; padding: 14px 20px;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
 }
 
@@ -315,12 +317,17 @@ a { color: var(--teal); }
 .sum-total { font-weight: 700; font-size: 18px; border-top: 1px solid var(--line); padding-top: 12px; margin-top: 10px; }
 
 /* confirmation screens */
-.success { max-width: 540px; animation: popIn .5s var(--ease) both; }
+.success {
+  max-width: 540px; margin: clamp(24px, 20vh, 200px) auto 0; padding: 38px 32px; text-align: center;
+  animation: popIn .5s var(--ease) both;
+}
 .success h1::before {
-  content: ''; display: block; width: 64px; height: 64px; border-radius: 50%; margin-bottom: 16px;
+  content: ''; display: block; width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px;
   background: var(--teal) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 58% no-repeat;
   animation: pop .55s var(--ease) .15s both;
 }
+
+.success .lead { max-width: 42ch; margin: 0 auto 26px; }
 
 /* popup */
 .modal-back { animation: fade .2s both; }
@@ -336,3 +343,6 @@ a { color: var(--teal); }
   }
   html { scroll-behavior: auto; }
 }
+
+/* ---------- live wallpaper ---------- */
+.wallpaper { position: fixed; inset: 0; z-index: 0; pointer-events: none; }

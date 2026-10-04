@@ -9,11 +9,13 @@ import Cremation from './pages/Cremation'
 import Doctors from './pages/Doctors'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
+import Wallpaper from './components/Wallpaper'
 import { CartProvider } from './context/CartContext'
 
 export default function App() {
   return (
     <CartProvider>
+      <Wallpaper />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/register" element={<Auth mode="register" />} />
