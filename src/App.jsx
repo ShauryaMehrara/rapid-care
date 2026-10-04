@@ -3,7 +3,9 @@ import Auth from './pages/Auth'
 import Tests from './pages/Tests'
 import Cart from './pages/Cart'
 import Family from './pages/Family'
-import ComingSoon from './pages/ComingSoon'
+import Ambulance from './pages/Ambulance'
+import Cremation from './pages/Cremation'
+import Doctors from './pages/Doctors'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { CartProvider } from './context/CartContext'
@@ -21,9 +23,9 @@ export default function App() {
           <Route path="/tests" element={<Tests />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/family" element={<Family />} />
-          <Route path="/ambulance" element={<ComingSoon title="Emergency ambulance" text="Request an ambulance to your location." />} />
-          <Route path="/cremation" element={<ComingSoon title="Cremation transport" text="Arrange respectful transport when a family needs it." />} />
-          <Route path="/doctors" element={<ComingSoon title="Doctor consultation" text="Find a doctor and book a consultation." />} />
+          <Route path="/ambulance" element={<Ambulance />} />
+          <Route path="/cremation" element={<Cremation />} />
+          <Route path="/doctors" element={<Doctors />} />
         </Route>
       </Routes>
     </CartProvider>
