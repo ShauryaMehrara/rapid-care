@@ -1,7 +1,6 @@
 import RequestForm from '../components/RequestForm'
 
 const fields = [
-  { name: 'patient_name', label: 'Patient name', required: true },
   { name: 'phone', label: 'Contact phone', type: 'tel', required: true, pattern: '[0-9]{10}', title: 'Enter a 10 digit phone number' },
   {
     name: 'ambulance_type', label: 'Ambulance type', type: 'select',
@@ -23,7 +22,7 @@ export default function Ambulance() {
       banner="In a life-threatening emergency, call 112 or 108 first. This request does not replace an emergency call."
       bannerTone="alert"
       fields={fields}
-      familyField="patient_name"
+      askPatient
       submitLabel="Request ambulance now"
       urgent
       successTitle="Ambulance request received"

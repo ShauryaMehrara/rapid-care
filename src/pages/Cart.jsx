@@ -3,24 +3,35 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useCart } from '../context/CartContext'
 import { rupees } from '../data/tests'
+import PatientModal from '../components/PatientModal'
+import usePatients from '../hooks/usePatients'
 
 const slots = ['7 AM - 10 AM', '10 AM - 1 PM', '1 PM - 5 PM']
 const today = new Date().toISOString().split('T')[0]
 
 export default function Cart() {
   const { items, remove, clear, total } = useCart()
+  const patients = usePatients()
+  const [askWho, setAskWho] = useState(false)
   const [form, setForm] = useState({
     phone: '', address: '', city: '', pincode: '',
     slot_date: '', slot_time: slots[0], payment_method: 'UPI',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [orderId, setOrderId] = useState(null)
+  const [booked, setBooked] = useState(null)
 
   const update = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
-  const placeOrder = async (e) => {
+  // Step 1: form is valid, so open the popup asking who the booking is for
+  const onSubmit = (e) => {
     e.preventDefault()
+    setError('')
+    setAskWho(true)
+  }
+
+  // Step 2: person chosen in the popup, so place the booking
+  const placeOrder = async (patientName) => {
     setError('')
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
@@ -28,6 +39,7 @@ export default function Cart() {
       .from('orders')
       .insert({
         user_id: user.id,
+        patient_name: patientName,
         items: items.map(({ id, name, price, type }) => ({ id, name, price, type })),
         total,
         ...form,
@@ -36,15 +48,19 @@ export default function Cart() {
       .single()
     setLoading(false)
     if (error) return setError(error.message)
-    setOrderId(data.id)
+    setAskWho(false)
+    setBooked({ id: data.id, patient: patientName })
     clear()
   }
 
-  if (orderId) {
+  if (booked) {
     return (
       <div className="panel success">
         <h1>Booking confirmed</h1>
-        <p className="lead">Your booking ID is <b>{orderId.slice(0, 8).toUpperCase()}</b>. Our team will call you to confirm the sample collection slot.</p>
+        <p className="lead">
+          Booked for <b>{booked.patient}</b>. Your booking ID is <b>{booked.id.slice(0, 8).toUpperCase()}</b>.
+          Our team will call you to confirm the sample collection slot.
+        </p>
         <Link to="/tests" className="btn">Book more tests</Link>
       </div>
     )
@@ -81,7 +97,7 @@ export default function Cart() {
           ))}
         </div>
 
-        <form className="panel" onSubmit={placeOrder}>
+        <form className="panel" onSubmit={onSubmit}>
           <h2>Collection details</h2>
           <input className="input" name="phone" placeholder="Phone number" required
             pattern="[0-9]{10}" title="Enter a 10 digit phone number"
@@ -115,12 +131,19 @@ export default function Cart() {
           <p className="note">Demo payment: no money is charged in this prototype.</p>
 
           <div className="sum-row sum-total"><span>Total</span><span>{rupees(total)}</span></div>
-          {error && <p className="error">{error}</p>}
-          <button className="btn full" disabled={loading}>
-            {loading ? 'Placing booking...' : 'Confirm booking'}
-          </button>
+          <button className="btn full">Continue to confirm</button>
         </form>
       </div>
+
+      {askWho && (
+        <PatientModal
+          options={patients}
+          busy={loading}
+          error={error}
+          onCancel={() => { setAskWho(false); setError('') }}
+          onConfirm={placeOrder}
+        />
+      )}
     </>
   )
 }

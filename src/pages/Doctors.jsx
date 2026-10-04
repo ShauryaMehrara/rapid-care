@@ -1,32 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { doctors, specialties } from '../data/doctors'
 import { rupees } from '../data/tests'
+import PatientModal from '../components/PatientModal'
+import usePatients from '../hooks/usePatients'
 import './Services.css'
 
 const slots = ['9:00 AM', '11:00 AM', '2:00 PM', '4:00 PM', '6:00 PM']
 const today = new Date().toISOString().split('T')[0]
-const emptyForm = { mode: 'Video call', slot_date: '', slot_time: slots[0], patient: '', patient_other: '', reason: '' }
+const emptyForm = { mode: 'Video call', slot_date: '', slot_time: slots[0], reason: '' }
 
 export default function Doctors() {
   const [specialty, setSpecialty] = useState('All')
   const [query, setQuery] = useState('')
   const [booking, setBooking] = useState(null)
   const [form, setForm] = useState(emptyForm)
-  const [family, setFamily] = useState([])
+  const patients = usePatients()
+  const [askWho, setAskWho] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(null)
-
-  useEffect(() => {
-    let active = true
-    supabase
-      .from('family_members')
-      .select('id, full_name')
-      .order('created_at')
-      .then(({ data }) => { if (active && data) setFamily(data) })
-    return () => { active = false }
-  }, [])
 
   const q = query.trim().toLowerCase()
   const shown = doctors.filter(
@@ -44,11 +37,15 @@ export default function Doctors() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const confirm = async (e) => {
+  const onSubmit = (e) => {
     e.preventDefault()
     setError('')
+    setAskWho(true)
+  }
+
+  const book = async (patientName) => {
+    setError('')
     setLoading(true)
-    const patient_name = form.patient === 'Someone else' ? form.patient_other.trim() : form.patient
     const { data: { user } } = await supabase.auth.getUser()
     const { data, error } = await supabase
       .from('appointments')
@@ -59,7 +56,7 @@ export default function Doctors() {
         mode: form.mode,
         slot_date: form.slot_date,
         slot_time: form.slot_time,
-        patient_name,
+        patient_name: patientName,
         reason: form.reason.trim(),
         fee: booking.fee,
       })
@@ -67,7 +64,8 @@ export default function Doctors() {
       .single()
     setLoading(false)
     if (error) return setError(error.message)
-    setDone({ id: data.id, doctor: booking.name, date: form.slot_date, time: form.slot_time, mode: form.mode, patient: patient_name })
+    setAskWho(false)
+    setDone({ id: data.id, doctor: booking.name, date: form.slot_date, time: form.slot_time, mode: form.mode, patient: patientName })
     setBooking(null)
   }
 
@@ -90,7 +88,7 @@ export default function Doctors() {
       <p className="lead">Find a doctor by name or specialty and book a video call or clinic visit.</p>
 
       {booking && (
-        <form className="panel req-form booking" onSubmit={confirm}>
+        <form className="panel req-form booking" onSubmit={onSubmit}>
           <h2>Book {booking.name}</h2>
           <p className="row-sub">{booking.specialty}, consultation fee {rupees(booking.fee)}</p>
 
@@ -111,26 +109,11 @@ export default function Doctors() {
               </select>
             </label>
           </div>
-          <label className="fld"><span>Who is the patient?</span>
-            <select className="input" name="patient" required value={form.patient} onChange={update}>
-              <option value="">Select patient</option>
-              <option>Myself</option>
-              {family.map((m) => <option key={m.id}>{m.full_name}</option>)}
-              <option>Someone else</option>
-            </select>
-          </label>
-          {form.patient === 'Someone else' && (
-            <label className="fld"><span>Patient name</span>
-              <input className="input" name="patient_other" required
-                value={form.patient_other} onChange={update} />
-            </label>
-          )}
           <label className="fld"><span>Reason for visit (optional)</span>
             <textarea className="input" name="reason" rows="2" value={form.reason} onChange={update} />
           </label>
-          {error && <p className="error">{error}</p>}
           <div className="fam-actions">
-            <button className="btn" disabled={loading}>{loading ? 'Booking...' : 'Confirm appointment'}</button>
+            <button className="btn">Continue to confirm</button>
             <button type="button" className="btn outline" onClick={() => setBooking(null)}>Cancel</button>
           </div>
         </form>
@@ -170,6 +153,18 @@ export default function Doctors() {
         </div>
       )}
       <p className="note demo-note">Doctors shown here are sample listings for the prototype.</p>
+
+      {askWho && (
+        <PatientModal
+          options={patients}
+          busy={loading}
+          error={error}
+          title="Who is this appointment for?"
+          confirmLabel="Confirm appointment"
+          onCancel={() => { setAskWho(false); setError('') }}
+          onConfirm={book}
+        />
+      )}
     </>
   )
 }
