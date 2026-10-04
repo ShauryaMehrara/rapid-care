@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Auth from './pages/Auth'
+import Home from './pages/Home'
 import Tests from './pages/Tests'
 import Cart from './pages/Cart'
 import Family from './pages/Family'
@@ -17,9 +18,10 @@ export default function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/register" element={<Auth mode="register" />} />
         <Route path="/login" element={<Auth mode="login" />} />
-        <Route path="/dashboard" element={<Navigate to="/tests" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/home" replace />} />
 
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/home" element={<Home />} />
           <Route path="/tests" element={<Tests />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/family" element={<Family />} />
@@ -27,6 +29,8 @@ export default function App() {
           <Route path="/cremation" element={<Cremation />} />
           <Route path="/doctors" element={<Doctors />} />
         </Route>
+
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </CartProvider>
   )

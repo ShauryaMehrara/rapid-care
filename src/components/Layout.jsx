@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useCart } from '../context/CartContext'
 
 const tabs = [
   { to: '/tests', label: 'Medical Tests' },
-  { to: '/ambulance', label: 'Ambulance' },
+  { to: '/ambulance', label: 'Ambulance', dot: true },
   { to: '/cremation', label: 'Cremation Transport' },
   { to: '/doctors', label: 'Doctor Consultation' },
   { to: '/family', label: 'Family Profiles' },
@@ -15,6 +15,7 @@ export default function Layout() {
   const [firstName, setFirstName] = useState('')
   const { items } = useCart()
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -34,17 +35,22 @@ export default function Layout() {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <Link to="/tests" className="brand">Rapid Care</Link>
+          <Link to="/home" className="brand">
+            <span className="logo">+</span>
+            Rapid Care
+          </Link>
           <nav className="tabs">
             {tabs.map((t) => (
               <NavLink key={t.to} to={t.to} className={({ isActive }) => 'tab' + (isActive ? ' active' : '')}>
                 {t.label}
+                {t.dot && <span className="dot" />}
               </NavLink>
             ))}
           </nav>
           <div className="top-actions">
             <Link to="/cart" className="cart-link">
-              Cart{items.length > 0 && <span className="badge">{items.length}</span>}
+              Cart
+              {items.length > 0 && <span className="badge" key={items.length}>{items.length}</span>}
             </Link>
             <span className="hello">{firstName ? `Hi, ${firstName}` : ''}</span>
             <button className="btn outline small" onClick={logout}>Log out</button>
@@ -52,7 +58,9 @@ export default function Layout() {
         </div>
       </header>
       <main className="page">
-        <Outlet />
+        <div className="route" key={location.pathname}>
+          <Outlet context={{ firstName }} />
+        </div>
       </main>
     </>
   )
